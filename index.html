@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Pelada de Sexta</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f2e1d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pelada">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pitch-dark: #0f2e1d;
+    --pitch: #163d27;
+    --turf: #1f5138;
+    --turf-light: #2c6b49;
+    --chalk: #f4f7f1;
+    --chalk-dim: #c9d6c9;
+    --gold: #e3b23c;
+    --gold-dim: #a9822d;
+    --red: #d1495b;
+    --red-dim: #8f3542;
+    --line: rgba(244, 247, 241, 0.14);
+    --font-display: 'Oswald', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --bg: var(--pitch-dark);
+    --surface: var(--pitch);
+    --surface-2: var(--turf);
+    --text: var(--chalk);
+    --text-dim: var(--chalk-dim);
+  }
+  :root:not([data-theme="light"]) { color-scheme: dark; }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #eef3ec;
+      --surface: #ffffff;
+      --surface-2: #e4ede2;
+      --text: #10261a;
+      --text-dim: #4a5f50;
+      --line: rgba(16, 38, 26, 0.12);
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #eef3ec;
+    --surface: #ffffff;
+    --surface-2: #e4ede2;
+    --text: #10261a;
+    --text-dim: #4a5f50;
+    --line: rgba(16, 38, 26, 0.12);
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    padding-bottom: 84px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .field-lines {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 64px, var(--line) 64px 65px);
+  }
+
+  header.top {
+    position: relative;
+    z-index: 1;
+    padding: 22px 20px 18px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+  }
+  header.top .title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: 0.2px;
+  }
+  header.top .title span { color: var(--gold); }
+  header.top .subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    font-family: var(--font-body);
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .reset-btn:active { background: var(--surface-2); }
+
+  @keyframes timerPulse {
+    0%, 100% { background: #3a0d10; }
+    50% { background: #6b1620; }
+  }
+
+  .timer-bar {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: #0a1f14;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 10px 16px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .timer-bar.alarm {
+    animation: timerPulse 0.8s ease-in-out infinite;
+  }
+  .timer-display {
+    font-family: 'Oswald', monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    font-size: 34px;
+    color: #ffb100;
+    letter-spacing: 1px;
+    min-width: 108px;
+    line-height: 1;
+  }
+  .timer-bar.alarm .timer-display { color: #ffe1a8; }
+  .timer-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .timer-btn {
+    border: none;
+    border-radius: 9px;
+    padding: 9px 14px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .timer-btn-start { background: #2f8a4e; color: #eafff0; }
+  .timer-btn-start.running { background: #b8862f; color: #2a1c00; }
+  .timer-btn-reset {
+    background: rgba(255,255,255,0.1);
+    color: #d8e6de;
+    font-size: 15px;
+    padding: 9px 11px;
+  }
+  .timer-presets {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+    margin-top: 2px;
+  }
+  .timer-presets button {
+    background: rgba(255,255,255,0.06);
+    color: #9fb3a8;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 7px;
+    padding: 5px 10px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .timer-presets button.active {
+    background: #ffb100;
+    color: #2a1c00;
+    border-color: #ffb100;
+    font-weight: 600;
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 16px 14px 20px;
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .section-label {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-dim);
+    margin: 18px 4px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label:first-child { margin-top: 4px; }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .test-data-btn {
+    display: block;
+    width: 100%;
+    background: none;
+    border: 1px dashed var(--line);
+    color: var(--text-dim);
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 4px;
+  }
+  .test-data-btn:active { background: var(--surface-2); }
+
+  .team-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 14px;
+  }
+  .filter-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 12px 6px 8px;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    opacity: 1;
+  }
+  .filter-chip .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .filter-chip .dot.dot-verde { background: #3f9d55; }
+  .filter-chip .dot.dot-laranja { background: #e2833f; }
+  .filter-chip .dot.dot-cinza { background: #9aa5a0; }
+  .filter-chip .dot.dot-vermelho { background: #d1495b; }
+  .filter-chip .dot.dot-none {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+  }
+  .filter-chip.hidden-team {
+    opacity: 0.4;
+  }
+  .filter-chip.hidden-team::after {
+    content: '· oculto';
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+
+  .player-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    transition: border-left-color 0.15s ease;
+  }
+  .player-card.team-verde { background: #2e6b40; border-left-color: #3f9d55; }
+  .player-card.team-laranja { background: #a85d24; border-left-color: #e2833f; }
+  .player-card.team-cinza { background: #52584f; border-left-color: #9aa5a0; }
+  .player-card.team-vermelho { background: #8c3140; border-left-color: #d1495b; }
+  .player-card.team-verde,
+  .player-card.team-laranja,
+  .player-card.team-cinza,
+  .player-card.team-vermelho {
+    color: #fff;
+    --text: #fff;
+    --text-dim: rgba(255,255,255,0.72);
+    --surface-2: rgba(255,255,255,0.18);
+    --line: rgba(255,255,255,0.22);
+  }
+  .player-card.team-verde .swatch.selected,
+  .player-card.team-laranja .swatch.selected,
+  .player-card.team-cinza .swatch.selected,
+  .player-card.team-vermelho .swatch.selected {
+    border-color: #fff;
+  }
+  .player-card .row-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .player-name {
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .player-name .badge {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: 10px;
+    color: var(--pitch-dark);
+    background: var(--gold);
+    border-radius: 5px;
+    padding: 1px 6px;
+    margin-left: 7px;
+    vertical-align: middle;
+  }
+  .remove-x {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px 6px;
+    cursor: pointer;
+  }
+  .counters {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .counters.goalie { grid-template-columns: 1fr; max-width: 160px; }
+
+  .team-swatches {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+  .team-swatches .sw-label {
+    font-size: 10.5px;
+    color: var(--text-dim);
+    margin-right: 2px;
+  }
+  .swatch {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+  }
+  .swatch.sw-verde { background: #3f9d55; }
+  .swatch.sw-laranja { background: #e2833f; }
+  .swatch.sw-cinza { background: #9aa5a0; }
+  .swatch.sw-vermelho { background: #d1495b; }
+  .swatch.sw-none {
+    background: var(--surface-2);
+    position: relative;
+  }
+  .swatch.sw-none::after {
+    content: '';
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 14px; height: 2px;
+    background: var(--text-dim);
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  .swatch.selected {
+    border-color: var(--text);
+  }
+  .counter {
+    background: var(--surface-2);
+    border-radius: 10px;
+    padding: 8px 6px 7px;
+    text-align: center;
+  }
+  .counter .label {
+    font-size: 10.5px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .counter .controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .counter .val {
+    font-family: var(--font-display);
+    font-variant-numeric: tabular-nums;
+    font-size: 20px;
+    min-width: 22px;
+    text-align: center;
+  }
+  .stepper {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 16px;
+    font-family: var(--font-body);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .stepper.plus { background: var(--turf-light); color: var(--chalk); }
+  :root[data-theme="light"] .stepper.plus,
+  @media (prefers-color-scheme: light) { .stepper.plus { background: #cfe0cb; color: #10261a; } }
+  .stepper:active { transform: scale(0.92); }
+
+  .add-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .add-row input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+  }
+  .add-row input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .add-row select {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--text);
+    padding: 0 10px;
+    font-family: var(--font-body);
+    font-size: 13px;
+  }
+  .add-btn {
+    background: var(--gold);
+    color: var(--pitch-dark);
+    border: none;
+    border-radius: 10px;
+    padding: 0 16px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .add-btn:active { background: var(--gold-dim); }
+
+  .empty-note {
+    color: var(--text-dim);
+    font-size: 13px;
+    padding: 10px 4px 4px;
+  }
+
+  .team-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 14px 4px 8px;
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dim);
+  }
+  .team-group-header:first-child { margin-top: 2px; }
+  .team-group-header .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .team-group-header .dot.dot-verde { background: #3f9d55; }
+  .team-group-header .dot.dot-laranja { background: #e2833f; }
+  .team-group-header .dot.dot-cinza { background: #9aa5a0; }
+  .team-group-header .dot.dot-vermelho { background: #d1495b; }
+  .team-group-header .dot.dot-none {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+  }
+  .team-group-header .cnt {
+    font-weight: 400;
+    color: var(--text-dim);
+    opacity: 0.75;
+  }
+
+  .trophy-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .trophy-card .t-icon { font-size: 22px; }
+  .trophy-card .t-name {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    margin: 6px 0 2px;
+  }
+  .trophy-card .t-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+  .winners {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .winner-pill {
+    background: var(--surface-2);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .winner-pill .n {
+    font-family: var(--font-display);
+    color: var(--gold-dim);
+    font-size: 12px;
+  }
+  .trophy-card.empty .winners { display: none; }
+  .trophy-card.empty .t-desc::after {
+    content: 'Ainda sem marcações nessa rodada.';
+    display: block;
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  .lineup-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .lineup-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+  .lineup-item .pos {
+    font-family: var(--font-display);
+    color: var(--gold-dim);
+    font-size: 13px;
+    width: 22px;
+  }
+  .lineup-item .nm { flex: 1; font-weight: 600; font-size: 14px; margin-left: 4px; }
+  .lineup-item .wv { font-size: 12px; color: var(--text-dim); }
+
+  nav.tabbar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 2;
+    display: flex;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    padding: 6px 8px calc(env(safe-area-inset-bottom, 0px) + 6px);
+  }
+  .tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 4px 6px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .tab-btn .ic { font-size: 19px; }
+  .tab-btn.active { color: var(--gold-dim); background: var(--surface-2); }
+
+  .theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: var(--text-dim);
+    cursor: pointer;
+    display: none;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    max-width: 320px;
+    width: 100%;
+  }
+  .modal-box p {
+    margin: 0 0 18px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  .modal-actions button {
+    border: none;
+    border-radius: 9px;
+    padding: 9px 16px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+  }
+  .modal-cancel {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  .modal-confirm {
+    background: var(--red);
+    color: var(--chalk);
+  }
+</style>
+</head>
+<body>
+<div class="field-lines"></div>
+
+<header class="top">
+  <div>
+    <div class="title">Pelada de <span>Sexta</span></div>
+    <div class="subtitle" id="dateLabel">Rodada em andamento</div>
+  </div>
+  <button class="reset-btn" id="resetBtn">Novo dia</button>
+</header>
+
+<div class="timer-bar" id="timerBar">
+  <div class="timer-display" id="timerDisplay">07:00</div>
+  <div class="timer-controls">
+    <button class="timer-btn timer-btn-start" id="timerToggle">Iniciar</button>
+    <button class="timer-btn timer-btn-reset" id="timerReset" aria-label="Reiniciar cronômetro">↺</button>
+  </div>
+  <div class="timer-presets" id="timerPresets">
+    <button data-min="5">5 min</button>
+    <button data-min="7" class="active">7 min</button>
+    <button data-min="10">10 min</button>
+    <button data-adj="-1">–1 min</button>
+    <button data-adj="1">+1 min</button>
+  </div>
+</div>
+
+<main>
+
+  <section id="view-marcar" class="view active">
+    <button class="test-data-btn" id="testDataBtn">🎲 Preencher com dados de teste (para ver a aba Placar)</button>
+
+    <div class="team-filter" id="teamFilter">
+      <button class="filter-chip" data-filter-team="verde"><span class="dot dot-verde"></span>Verde</button>
+      <button class="filter-chip" data-filter-team="laranja"><span class="dot dot-laranja"></span>Laranja</button>
+      <button class="filter-chip" data-filter-team="cinza"><span class="dot dot-cinza"></span>Cinza</button>
+      <button class="filter-chip" data-filter-team="vermelho"><span class="dot dot-vermelho"></span>Vermelho</button>
+      <button class="filter-chip" data-filter-team="none"><span class="dot dot-none"></span>Sem time</button>
+    </div>
+
+    <div class="section-label">Goleiros</div>
+    <div id="goalieList"></div>
+
+    <div class="section-label">Jogadores de linha</div>
+    <div id="playerList"></div>
+    <div id="emptyLinha" class="empty-note" style="display:none;">Nenhum jogador de linha ainda. Adicione abaixo.</div>
+
+    <div class="section-label">Adicionar jogador</div>
+    <div class="add-row">
+      <input type="text" id="newName" placeholder="Nome do jogador" maxlength="30">
+      <select id="newRole">
+        <option value="linha">Linha</option>
+        <option value="goleiro">Goleiro</option>
+      </select>
+      <button class="add-btn" id="addBtn">+</button>
+    </div>
+  </section>
+
+  <div id="view-placar" class="view">
+    <div class="section-label">Troféus da rodada</div>
+    <div id="trophies"></div>
+  </div>
+
+</main>
+
+<nav class="tabbar">
+  <button class="tab-btn active" data-view="marcar">
+    <span class="ic">✏️</span>Marcar
+  </button>
+  <button class="tab-btn" data-view="placar">
+    <span class="ic">🏆</span>Placar
+  </button>
+</nav>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <p id="modalText"></p>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="modalCancel">Cancelar</button>
+      <button class="modal-confirm" id="modalConfirm">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var STORAGE_KEY = 'pelada_sexta_v1';
+
+  var defaultRoster = [
+    { id: 'g1', name: 'Pedro', role: 'goleiro', team: null, vitorias: 0, defesasGrandes: 0 },
+    { id: 'g2', name: 'Luan', role: 'goleiro', team: null, vitorias: 0, defesasGrandes: 0 },
+    { id: 'p1', name: 'Slark', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p2', name: 'Júlio Sergio', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p3', name: 'William', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p4', name: 'Ivan', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p5', name: 'Pastor Pedro', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p6', name: 'Francisco', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p7', name: 'Weverson Lima', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p8', name: 'Jefferson Luiz', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p9', name: 'Maykon Douglas', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p10', name: 'Luis Fernando', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p11', name: 'Denisson', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p12', name: 'Paulo Junior', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p13', name: 'Gilvan', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p14', name: 'Kauan', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 }
+  ];
+
+  var state = { players: defaultRoster, hiddenTeams: [] };
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.players)) {
+          parsed.players.forEach(function(p) {
+            if (!('team' in p)) p.team = null;
+            if (p.role === 'goleiro' && !('defesasGrandes' in p)) p.defesasGrandes = 0;
+          });
+          if (!Array.isArray(parsed.hiddenTeams)) parsed.hiddenTeams = [];
+          state = parsed;
+        }
+      }
+    } catch (e) {
+      // storage unavailable or corrupted — fall back to defaults silently
+    }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      // ignore write failures (private mode, quota, etc.)
+    }
+  }
+
+  function uid() {
+    return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  var pendingConfirmAction = null;
+
+  function showConfirm(message, onConfirm) {
+    document.getElementById('modalText').textContent = message;
+    pendingConfirmAction = onConfirm;
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function hideConfirm() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    pendingConfirmAction = null;
+  }
+
+  document.getElementById('modalCancel').addEventListener('click', hideConfirm);
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === e.currentTarget) hideConfirm();
+  });
+  document.getElementById('modalConfirm').addEventListener('click', function() {
+    var action = pendingConfirmAction;
+    hideConfirm();
+    if (action) action();
+  });
+
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  // ---------- rendering ----------
+
+  var TEAM_COLORS = ['verde', 'laranja', 'cinza', 'vermelho'];
+  var TEAM_ORDER = TEAM_COLORS.concat([null]);
+  var TEAM_LABELS = { verde: 'Time Verde', laranja: 'Time Laranja', cinza: 'Time Cinza', vermelho: 'Time Vermelho', null: 'Sem time' };
+
+  function groupHeaderHtml(team, count) {
+    var key = team || 'none';
+    return '<div class="team-group-header"><span class="dot dot-' + key + '"></span>' +
+      TEAM_LABELS[team] + '<span class="cnt">(' + count + ')</span></div>';
+  }
+
+  function renderGroupedList(list, cardFn) {
+    var groups = TEAM_ORDER.map(function(t) { return { team: t, items: [] }; });
+    list.forEach(function(p) {
+      var g = groups.filter(function(x) { return x.team === p.team; })[0];
+      g.items.push(p);
+    });
+    var html = '';
+    groups.forEach(function(g) {
+      if (!g.items.length) return;
+      html += groupHeaderHtml(g.team, g.items.length);
+      html += g.items.map(cardFn).join('');
+    });
+    return html;
+  }
+
+  function swatchesHtml(playerId, currentTeam) {
+    var opts = TEAM_COLORS.map(function(c) {
+      return '<button class="swatch sw-' + c + (currentTeam === c ? ' selected' : '') + '" data-team-id="' + playerId + '" data-team="' + c + '" aria-label="Colete ' + c + '"></button>';
+    }).join('');
+    var noneBtn = '<button class="swatch sw-none' + (!currentTeam ? ' selected' : '') + '" data-team-id="' + playerId + '" data-team="" aria-label="Sem time"></button>';
+    return '<div class="team-swatches"><span class="sw-label">Colete</span>' + opts + noneBtn + '</div>';
+  }
+
+  function counterBlock(playerId, field, label) {
+    var p = state.players.find(function(x){ return x.id === playerId; });
+    var val = p[field];
+    return '' +
+      '<div class="counter">' +
+        '<div class="label">' + label + '</div>' +
+        '<div class="controls">' +
+          '<button class="stepper minus" data-id="' + playerId + '" data-field="' + field + '" data-delta="-1">–</button>' +
+          '<div class="val">' + val + '</div>' +
+          '<button class="stepper plus" data-id="' + playerId + '" data-field="' + field + '" data-delta="1">+</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function teamKey(t) { return t || 'none'; }
+  function isHiddenTeam(t) { return state.hiddenTeams.indexOf(teamKey(t)) !== -1; }
+
+  function renderGoalies() {
+    var all = state.players.filter(function(p){ return p.role === 'goleiro'; });
+    var goalies = all.filter(function(p){ return !isHiddenTeam(p.team); });
+    var html = renderGroupedList(goalies, function(p) {
+      return '' +
+        '<div class="player-card' + (p.team ? ' team-' + p.team : '') + '">' +
+          '<div class="row-top">' +
+            '<div class="player-name">' + esc(p.name) + '<span class="badge">GOL</span></div>' +
+            '<button class="remove-x" data-remove="' + p.id + '" aria-label="Remover">×</button>' +
+          '</div>' +
+          swatchesHtml(p.id, p.team) +
+          '<div class="counters" style="grid-template-columns:1fr 1fr;">' +
+            counterBlock(p.id, 'vitorias', 'Vitórias') +
+            counterBlock(p.id, 'defesasGrandes', 'Grandes defesas') +
+          '</div>' +
+        '</div>';
+    });
+    document.getElementById('goalieList').innerHTML = html ||
+      (all.length ? '<div class="empty-note">Todos os goleiros estão ocultos pelo filtro de times.</div>' : '<div class="empty-note">Nenhum goleiro cadastrado.</div>');
+  }
+
+  function renderPlayers() {
+    var all = state.players.filter(function(p){ return p.role === 'linha'; });
+    var players = all.filter(function(p){ return !isHiddenTeam(p.team); });
+    var emptyEl = document.getElementById('emptyLinha');
+    if (!all.length) {
+      emptyEl.style.display = 'block';
+      emptyEl.textContent = 'Nenhum jogador de linha ainda. Adicione abaixo.';
+    } else if (!players.length) {
+      emptyEl.style.display = 'block';
+      emptyEl.textContent = 'Todos os jogadores de linha estão ocultos pelo filtro de times.';
+    } else {
+      emptyEl.style.display = 'none';
+    }
+    var html = renderGroupedList(players, function(p) {
+      return '' +
+        '<div class="player-card' + (p.team ? ' team-' + p.team : '') + '">' +
+          '<div class="row-top">' +
+            '<div class="player-name">' + esc(p.name) + '</div>' +
+            '<button class="remove-x" data-remove="' + p.id + '" aria-label="Remover">×</button>' +
+          '</div>' +
+          swatchesHtml(p.id, p.team) +
+          '<div class="counters">' +
+            counterBlock(p.id, 'gols', 'Gols') +
+            counterBlock(p.id, 'vitorias', 'Vitórias') +
+            counterBlock(p.id, 'golsPerdidos', 'Gol perdido') +
+          '</div>' +
+        '</div>';
+    });
+    document.getElementById('playerList').innerHTML = html;
+  }
+
+  function topByField(list, field) {
+    var max = 0;
+    list.forEach(function(p){ if (p[field] > max) max = p[field]; });
+    if (max === 0) return { max: 0, winners: [] };
+    return { max: max, winners: list.filter(function(p){ return p[field] === max; }) };
+  }
+
+  function trophyCard(icon, name, desc, winners, valueField, valueLabel) {
+    var isEmpty = winners.length === 0;
+    var pills = winners.map(function(p) {
+      return '<div class="winner-pill">' + esc(p.name) + '<span class="n">' + p[valueField] + ' ' + valueLabel + '</span></div>';
+    }).join('');
+    return '' +
+      '<div class="trophy-card' + (isEmpty ? ' empty' : '') + '">' +
+        '<div class="t-icon">' + icon + '</div>' +
+        '<div class="t-name">' + name + '</div>' +
+        '<div class="t-desc">' + desc + '</div>' +
+        '<div class="winners">' + pills + '</div>' +
+      '</div>';
+  }
+
+  function renderTrophies() {
+    var linha = state.players.filter(function(p){ return p.role === 'linha'; });
+    var goleiros = state.players.filter(function(p){ return p.role === 'goleiro'; });
+
+    var artilheiro = topByField(linha, 'gols');
+    var melhorGoleiro = topByField(goleiros, 'vitorias');
+    var inacreditavel = topByField(linha, 'golsPerdidos');
+    var muralha = topByField(goleiros, 'defesasGrandes');
+
+    var html = '';
+    html += trophyCard('⚽', 'Artilheiro da rodada', 'Quem fez mais gols na noite.', artilheiro.winners, 'gols', 'gols');
+    html += trophyCard('🧤', 'Goleiro mais vencedor', 'O goleiro que mais venceu partidas.', melhorGoleiro.winners, 'vitorias', 'vitórias');
+    html += trophyCard('🧱', 'Muralha da rodada', 'O goleiro que mais fez grandes defesas.', muralha.winners, 'defesasGrandes', 'defesas');
+    html += trophyCard('🙈', 'Inacreditável Futebol Clube', 'Quem perdeu o gol mais fácil.', inacreditavel.winners, 'golsPerdidos', 'gols perdidos');
+
+    // Seleção da rodada: top 5 line players by vitórias
+    var sorted = linha.slice().sort(function(a, b){ return b.vitorias - a.vitorias; });
+    var withWins = sorted.filter(function(p){ return p.vitorias > 0; });
+    var top5 = withWins.slice(0, 5);
+    var cutoff = top5.length ? top5[top5.length - 1].vitorias : null;
+    var tiedAtCutoff = cutoff !== null ? withWins.filter(function(p){ return p.vitorias === cutoff; }).length : 0;
+    var displaySelecao = withWins.filter(function(p, i) {
+      return i < 5 || (cutoff !== null && p.vitorias === cutoff);
+    });
+
+    var selecaoHtml;
+    if (!displaySelecao.length) {
+      selecaoHtml = '<div class="trophy-card empty">' +
+        '<div class="t-icon">🌟</div>' +
+        '<div class="t-name">Seleção da rodada</div>' +
+        '<div class="t-desc">Os 5 jogadores de linha que mais venceram na noite.</div>' +
+        '</div>';
+    } else {
+      var lineup = displaySelecao.map(function(p, i) {
+        return '<div class="lineup-item"><span class="pos">' + (i + 1) + '</span><span class="nm">' + esc(p.name) + '</span><span class="wv">' + p.vitorias + ' vit.</span></div>';
+      }).join('');
+      var tieNote = tiedAtCutoff > 1 && top5.length === 5 ?
+        '<div class="empty-note" style="padding-top:8px;">Empate na 5ª vaga — todos com ' + cutoff + ' vitórias entram.</div>' : '';
+      selecaoHtml = '<div class="trophy-card">' +
+        '<div class="t-icon">🌟</div>' +
+        '<div class="t-name">Seleção da rodada</div>' +
+        '<div class="t-desc">Os 5 jogadores de linha que mais venceram na noite.</div>' +
+        '<div class="lineup-list">' + lineup + '</div>' +
+        tieNote +
+        '</div>';
+    }
+    html += selecaoHtml;
+
+    document.getElementById('trophies').innerHTML = html;
+  }
+
+  function renderTeamFilter() {
+    document.querySelectorAll('#teamFilter .filter-chip').forEach(function(chip) {
+      var key = chip.getAttribute('data-filter-team');
+      chip.classList.toggle('hidden-team', state.hiddenTeams.indexOf(key) !== -1);
+    });
+  }
+
+  function renderAll() {
+    renderTeamFilter();
+    renderGoalies();
+    renderPlayers();
+    renderTrophies();
+  }
+
+  // ---------- events ----------
+
+  function switchToTab(v) {
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-view') === v); });
+    document.getElementById('view-marcar').classList.toggle('active', v === 'marcar');
+    document.getElementById('view-placar').classList.toggle('active', v === 'placar');
+    if (v === 'placar') renderTrophies();
+  }
+
+  document.addEventListener('click', function(e) {
+    var swatch = e.target.closest('.swatch');
+    if (swatch) {
+      var sid = swatch.getAttribute('data-team-id');
+      var team = swatch.getAttribute('data-team') || null;
+      var ps = state.players.find(function(x){ return x.id === sid; });
+      if (ps) {
+        ps.team = team;
+        saveState();
+        renderAll();
+      }
+      return;
+    }
+    var stepper = e.target.closest('.stepper');
+    if (stepper) {
+      var id = stepper.getAttribute('data-id');
+      var field = stepper.getAttribute('data-field');
+      var delta = parseInt(stepper.getAttribute('data-delta'), 10);
+      var p = state.players.find(function(x){ return x.id === id; });
+      if (p) {
+        p[field] = Math.max(0, p[field] + delta);
+        saveState();
+        renderAll();
+      }
+      return;
+    }
+    var rem = e.target.closest('[data-remove]');
+    if (rem) {
+      var rid = rem.getAttribute('data-remove');
+      var p2 = state.players.find(function(x){ return x.id === rid; });
+      if (p2) {
+        showConfirm('Remover ' + p2.name + ' da lista?', function() {
+          state.players = state.players.filter(function(x){ return x.id !== rid; });
+          saveState();
+          renderAll();
+        });
+      }
+      return;
+    }
+    var tab = e.target.closest('.tab-btn');
+    if (tab) {
+      switchToTab(tab.getAttribute('data-view'));
+      return;
+    }
+  });
+
+  document.getElementById('addBtn').addEventListener('click', addPlayer);
+  document.getElementById('newName').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') addPlayer();
+  });
+
+  function addPlayer() {
+    var input = document.getElementById('newName');
+    var role = document.getElementById('newRole').value;
+    var name = input.value.trim();
+    if (!name) return;
+    var newPlayer = { id: uid(), name: name, role: role, team: null, vitorias: 0 };
+    if (role === 'goleiro') {
+      newPlayer.defesasGrandes = 0;
+    } else {
+      newPlayer.gols = 0;
+      newPlayer.golsPerdidos = 0;
+    }
+    state.players.push(newPlayer);
+    input.value = '';
+    saveState();
+    renderAll();
+  }
+
+  document.getElementById('teamFilter').addEventListener('click', function(e) {
+    var chip = e.target.closest('.filter-chip');
+    if (!chip) return;
+    var key = chip.getAttribute('data-filter-team');
+    var idx = state.hiddenTeams.indexOf(key);
+    if (idx === -1) {
+      state.hiddenTeams.push(key);
+    } else {
+      state.hiddenTeams.splice(idx, 1);
+    }
+    saveState();
+    renderAll();
+  });
+
+  document.getElementById('testDataBtn').addEventListener('click', function() {
+    showConfirm('Preencher com dados de teste? Isso substitui as marcações atuais (o elenco é mantido).', function() {
+      function rnd(max) { return Math.floor(Math.random() * (max + 1)); }
+      state.players.forEach(function(p) {
+        p.vitorias = rnd(4);
+        if (p.role === 'linha') {
+          p.gols = rnd(5);
+          p.golsPerdidos = rnd(2);
+        } else {
+          p.defesasGrandes = rnd(6);
+        }
+      });
+      saveState();
+      renderAll();
+      switchToTab('placar');
+    });
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function() {
+    showConfirm('Zerar todas as marcações para uma nova rodada? O elenco é mantido.', function() {
+      state.players.forEach(function(p) {
+        p.vitorias = 0; p.team = null;
+        if (p.role === 'linha') {
+          p.gols = 0; p.golsPerdidos = 0;
+        } else {
+          p.defesasGrandes = 0;
+        }
+      });
+      state.hiddenTeams = [];
+      saveState();
+      renderAll();
+    });
+  });
+
+  loadState();
+  renderAll();
+
+  var d = new Date();
+  var dias = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+  document.getElementById('dateLabel').textContent = dias[d.getDay()].charAt(0).toUpperCase() + dias[d.getDay()].slice(1);
+
+  // ---------- timer ----------
+
+  var timer = {
+    durationSec: 7 * 60,
+    remainingSec: 7 * 60,
+    running: false,
+    endAt: null,
+    alarmOn: false
+  };
+  var audioCtx = null;
+
+  function ensureAudio() {
+    if (!audioCtx) {
+      try {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      } catch (e) { /* audio unavailable */ }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(function() {});
+    }
+  }
+
+  function beepOnce(delayMs) {
+    setTimeout(function() {
+      if (!audioCtx) return;
+      try {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.28);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } catch (e) { /* ignore */ }
+    }, delayMs);
+  }
+
+  function fmtTime(sec) {
+    sec = Math.max(0, sec);
+    var m = Math.floor(sec / 60);
+    var s = sec % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function renderTimer() {
+    document.getElementById('timerDisplay').textContent = fmtTime(timer.remainingSec);
+    var toggleBtn = document.getElementById('timerToggle');
+    toggleBtn.textContent = timer.running ? 'Pausar' : 'Iniciar';
+    toggleBtn.classList.toggle('running', timer.running);
+    document.getElementById('timerBar').classList.toggle('alarm', timer.alarmOn);
+    document.querySelectorAll('#timerPresets button[data-min]').forEach(function(b) {
+      b.classList.toggle('active', parseInt(b.getAttribute('data-min'), 10) * 60 === timer.durationSec);
+    });
+  }
+
+  function clearAlarm() {
+    timer.alarmOn = false;
+  }
+
+  function timerTick() {
+    if (!timer.running) return;
+    var remaining = Math.ceil((timer.endAt - Date.now()) / 1000);
+    if (remaining <= 0) {
+      timer.remainingSec = 0;
+      timer.running = false;
+      timer.alarmOn = true;
+      beepOnce(0);
+      beepOnce(350);
+      beepOnce(700);
+      try { if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 250]); } catch (e) {}
+      setTimeout(clearAlarm, 8000);
+    } else {
+      timer.remainingSec = remaining;
+    }
+    renderTimer();
+  }
+
+  setInterval(timerTick, 250);
+
+  document.getElementById('timerToggle').addEventListener('click', function() {
+    clearAlarm();
+    if (timer.running) {
+      timer.remainingSec = Math.max(0, Math.ceil((timer.endAt - Date.now()) / 1000));
+      timer.running = false;
+    } else {
+      ensureAudio();
+      if (timer.remainingSec <= 0) timer.remainingSec = timer.durationSec;
+      timer.endAt = Date.now() + timer.remainingSec * 1000;
+      timer.running = true;
+    }
+    renderTimer();
+  });
+
+  document.getElementById('timerReset').addEventListener('click', function() {
+    clearAlarm();
+    timer.running = false;
+    timer.remainingSec = timer.durationSec;
+    renderTimer();
+  });
+
+  document.getElementById('timerPresets').addEventListener('click', function(e) {
+    var minBtn = e.target.closest('button[data-min]');
+    var adjBtn = e.target.closest('button[data-adj]');
+    if (minBtn) {
+      clearAlarm();
+      timer.running = false;
+      timer.durationSec = parseInt(minBtn.getAttribute('data-min'), 10) * 60;
+      timer.remainingSec = timer.durationSec;
+      renderTimer();
+    } else if (adjBtn) {
+      clearAlarm();
+      timer.running = false;
+      var delta = parseInt(adjBtn.getAttribute('data-adj'), 10) * 60;
+      timer.durationSec = Math.max(60, timer.durationSec + delta);
+      timer.remainingSec = timer.durationSec;
+      renderTimer();
+    }
+  });
+
+  renderTimer();
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('./sw.js').catch(function() {
+        // Offline support just won't be available this session; the app
+        // still works normally as long as the page stays open.
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>
