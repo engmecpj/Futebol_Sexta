@@ -195,6 +195,30 @@
     padding: 16px 14px 20px;
   }
 
+  #courtLayout { display: none; }
+
+  @media (min-width: 820px) {
+    main { max-width: 960px; }
+    #stackedLayout { display: none; }
+    #courtLayout { display: block; }
+    .teams-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .team-column {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .team-column .team-group-header {
+      margin-top: 0;
+      font-size: 15px;
+    }
+  }
+
   .view { display: none; }
   .view.active { display: block; }
 
@@ -693,12 +717,20 @@
       <button class="filter-chip" data-filter-team="none"><span class="dot dot-none"></span>Sem time</button>
     </div>
 
-    <div class="section-label">Goleiros</div>
-    <div id="goalieList"></div>
+    <div id="stackedLayout">
+      <div class="section-label">Goleiros</div>
+      <div id="goalieList"></div>
 
-    <div class="section-label">Jogadores de linha</div>
-    <div id="playerList"></div>
-    <div id="emptyLinha" class="empty-note" style="display:none;">Nenhum jogador de linha ainda. Adicione abaixo.</div>
+      <div class="section-label">Jogadores de linha</div>
+      <div id="playerList"></div>
+      <div id="emptyLinha" class="empty-note" style="display:none;">Nenhum jogador de linha ainda. Adicione abaixo.</div>
+    </div>
+
+    <div id="courtLayout">
+      <div id="courtTeams" class="teams-grid"></div>
+      <div class="section-label">No banco</div>
+      <div id="courtBenchList"></div>
+    </div>
 
     <div class="section-label">Adicionar jogador</div>
     <div class="add-row">
@@ -874,23 +906,43 @@
   function teamKey(t) { return t || 'none'; }
   function isHiddenTeam(t) { return state.hiddenTeams.indexOf(teamKey(t)) !== -1; }
 
+  function goalieCardHtml(p) {
+    return '' +
+      '<div class="player-card' + (p.team ? ' team-' + p.team : '') + '">' +
+        '<div class="row-top">' +
+          '<div class="player-name">' + esc(p.name) + '<span class="badge">GOL</span></div>' +
+          '<button class="remove-x" data-remove="' + p.id + '" aria-label="Remover">×</button>' +
+        '</div>' +
+        swatchesHtml(p.id, p.team) +
+        '<div class="counters" style="grid-template-columns:1fr 1fr;">' +
+          counterBlock(p.id, 'vitorias', 'Vitórias') +
+          counterBlock(p.id, 'defesasGrandes', 'Grandes defesas') +
+        '</div>' +
+      '</div>';
+  }
+
+  function lineCardHtml(p) {
+    return '' +
+      '<div class="player-card' + (p.team ? ' team-' + p.team : '') + '">' +
+        '<div class="row-top">' +
+          '<div class="player-name">' + esc(p.name) + '</div>' +
+          '<button class="remove-x" data-remove="' + p.id + '" aria-label="Remover">×</button>' +
+        '</div>' +
+        swatchesHtml(p.id, p.team) +
+        '<div class="counters">' +
+          counterBlock(p.id, 'gols', 'Gols') +
+          counterBlock(p.id, 'vitorias', 'Vitórias') +
+          counterBlock(p.id, 'golsPerdidos', 'Gol perdido') +
+        '</div>' +
+      '</div>';
+  }
+
+  function cardHtmlFor(p) { return p.role === 'goleiro' ? goalieCardHtml(p) : lineCardHtml(p); }
+
   function renderGoalies() {
     var all = state.players.filter(function(p){ return p.role === 'goleiro'; });
     var goalies = all.filter(function(p){ return !isHiddenTeam(p.team); });
-    var html = renderGroupedList(goalies, function(p) {
-      return '' +
-        '<div class="player-card' + (p.team ? ' team-' + p.team : '') + '">' +
-          '<div class="row-top">' +
-            '<div class="player-name">' + esc(p.name) + '<span class="badge">GOL</span></div>' +
-            '<button class="remove-x" data-remove="' + p.id + '" aria-label="Remover">×</button>' +
-          '</div>' +
-          swatchesHtml(p.id, p.team) +
-          '<div class="counters" style="grid-template-columns:1fr 1fr;">' +
-            counterBlock(p.id, 'vitorias', 'Vitórias') +
-            counterBlock(p.id, 'defesasGrandes', 'Grandes defesas') +
-          '</div>' +
-        '</div>';
-    });
+    var html = renderGroupedList(goalies, goalieCardHtml);
     document.getElementById('goalieList').innerHTML = html ||
       (all.length ? '<div class="empty-note">Todos os goleiros estão ocultos pelo filtro de times.</div>' : '<div class="empty-note">Nenhum goleiro cadastrado.</div>');
   }
@@ -908,21 +960,7 @@
     } else {
       emptyEl.style.display = 'none';
     }
-    var html = renderGroupedList(players, function(p) {
-      return '' +
-        '<div class="player-card' + (p.team ? ' team-' + p.team : '') + '">' +
-          '<div class="row-top">' +
-            '<div class="player-name">' + esc(p.name) + '</div>' +
-            '<button class="remove-x" data-remove="' + p.id + '" aria-label="Remover">×</button>' +
-          '</div>' +
-          swatchesHtml(p.id, p.team) +
-          '<div class="counters">' +
-            counterBlock(p.id, 'gols', 'Gols') +
-            counterBlock(p.id, 'vitorias', 'Vitórias') +
-            counterBlock(p.id, 'golsPerdidos', 'Gol perdido') +
-          '</div>' +
-        '</div>';
-    });
+    var html = renderGroupedList(players, lineCardHtml);
     document.getElementById('playerList').innerHTML = html;
   }
 
@@ -1005,10 +1043,26 @@
     });
   }
 
+  function renderCourtLayout() {
+    var courtTeamKeys = ['verde', 'laranja'];
+    var teamsHtml = courtTeamKeys.map(function(team) {
+      var members = state.players.filter(function(p){ return p.team === team; });
+      var cardsHtml = members.map(cardHtmlFor).join('');
+      if (!cardsHtml) cardsHtml = '<div class="empty-note">Nenhum jogador neste time ainda.</div>';
+      return '<div class="team-column">' + groupHeaderHtml(team, members.length) + cardsHtml + '</div>';
+    }).join('');
+    document.getElementById('courtTeams').innerHTML = teamsHtml;
+
+    var benchMembers = state.players.filter(function(p){ return courtTeamKeys.indexOf(p.team) === -1; });
+    var benchHtml = renderGroupedList(benchMembers, cardHtmlFor);
+    document.getElementById('courtBenchList').innerHTML = benchHtml || '<div class="empty-note">Ninguém no banco no momento.</div>';
+  }
+
   function renderAll() {
     renderTeamFilter();
     renderGoalies();
     renderPlayers();
+    renderCourtLayout();
     renderTrophies();
   }
 

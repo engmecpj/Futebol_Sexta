@@ -1,7 +1,7 @@
 // Service worker for the "Pelada de Sexta" app.
 // Bump CACHE_NAME whenever the app files change, so the new
 // version gets fetched and old caches get cleaned up.
-var CACHE_NAME = 'pelada-sexta-v1';
+var CACHE_NAME = 'pelada-sexta-v2';
 
 var PRECACHE_URLS = [
   './',
