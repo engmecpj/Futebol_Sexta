@@ -1,7 +1,7 @@
 {
-  "name": "Pelada de Sexta",
-  "short_name": "Pelada",
-  "description": "Marcador de gols, vitórias e troféus da pelada de sexta-feira",
+  "name": "Fut de Sexta",
+  "short_name": "Fut Sexta",
+  "description": "Marcador de gols, vitórias e troféus do Fut de Sexta",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

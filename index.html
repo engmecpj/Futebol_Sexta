@@ -3,15 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<title>Pelada de Sexta</title>
+<title>Fut de Sexta</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f2e1d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Pelada">
+<meta name="apple-mobile-web-app-title" content="Fut de Sexta">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -683,7 +685,7 @@
 
 <header class="top">
   <div>
-    <div class="title">Pelada de <span>Sexta</span></div>
+    <div class="title">Fut de <span>Sexta</span></div>
     <div class="subtitle" id="dateLabel">Rodada em andamento</div>
   </div>
   <button class="reset-btn" id="resetBtn">Novo dia</button>
@@ -773,6 +775,28 @@
 (function() {
   var STORAGE_KEY = 'pelada_sexta_v1';
 
+  // Firebase — banco compartilhado em tempo real entre os celulares.
+  var firebaseConfig = {
+    apiKey: "AIzaSyDrtMhXYEYQo4Yri0w2tK4Lz_2bqKzP64U",
+    authDomain: "fut-de-sexta.firebaseapp.com",
+    projectId: "fut-de-sexta",
+    storageBucket: "fut-de-sexta.firebasestorage.app",
+    messagingSenderId: "184350885082",
+    appId: "1:184350885082:web:e47034e3643c0b0575d1e3"
+  };
+  var db = null;
+  var stateDocRef = null;
+  var firestoreReady = false;
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    stateDocRef = db.collection('peladaSexta').doc('estadoAtual');
+    firestoreReady = true;
+  } catch (e) {
+    // Sem Firebase disponível (ex: offline na primeira carga) — o app
+    // continua funcionando normalmente a partir do armazenamento local.
+  }
+
   var defaultRoster = [
     { id: 'g1', name: 'Pedro', role: 'goleiro', team: null, vitorias: 0, defesasGrandes: 0 },
     { id: 'g2', name: 'Luan', role: 'goleiro', team: null, vitorias: 0, defesasGrandes: 0 },
@@ -794,19 +818,22 @@
 
   var state = { players: defaultRoster, hiddenTeams: [] };
 
+  function normalizeState(candidate) {
+    if (!candidate || !Array.isArray(candidate.players)) return null;
+    candidate.players.forEach(function(p) {
+      if (!('team' in p)) p.team = null;
+      if (p.role === 'goleiro' && !('defesasGrandes' in p)) p.defesasGrandes = 0;
+    });
+    if (!Array.isArray(candidate.hiddenTeams)) candidate.hiddenTeams = [];
+    return candidate;
+  }
+
   function loadState() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        var parsed = JSON.parse(raw);
-        if (parsed && Array.isArray(parsed.players)) {
-          parsed.players.forEach(function(p) {
-            if (!('team' in p)) p.team = null;
-            if (p.role === 'goleiro' && !('defesasGrandes' in p)) p.defesasGrandes = 0;
-          });
-          if (!Array.isArray(parsed.hiddenTeams)) parsed.hiddenTeams = [];
-          state = parsed;
-        }
+        var parsed = normalizeState(JSON.parse(raw));
+        if (parsed) state = parsed;
       }
     } catch (e) {
       // storage unavailable or corrupted — fall back to defaults silently
@@ -819,6 +846,36 @@
     } catch (e) {
       // ignore write failures (private mode, quota, etc.)
     }
+    if (firestoreReady && stateDocRef) {
+      stateDocRef.set(state).catch(function() {
+        // sem internet ou banco indispon\u00edvel — os dados continuam
+        // salvos localmente e sincronizam na pr\u00f3xima vez que houver rede.
+      });
+    }
+  }
+
+  var applyingRemoteUpdate = false;
+
+  function subscribeRemoteState() {
+    if (!firestoreReady || !stateDocRef) return;
+    stateDocRef.onSnapshot(function(doc) {
+      if (doc.exists) {
+        var remote = normalizeState(doc.data());
+        if (remote) {
+          applyingRemoteUpdate = true;
+          state = remote;
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+          renderAll();
+          applyingRemoteUpdate = false;
+        }
+      } else {
+        // Ainda não existe um documento compartilhado: este celular vira
+        // a primeira fonte de verdade e publica o estado atual.
+        stateDocRef.set(state).catch(function() {});
+      }
+    }, function() {
+      // erro de permissão/conexão — o app segue funcionando com os dados locais
+    });
   }
 
   function uid() {
@@ -1194,6 +1251,7 @@
 
   loadState();
   renderAll();
+  subscribeRemoteState();
 
   var d = new Date();
   var dias = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
