@@ -367,6 +367,36 @@
   }
   .counters.goalie { grid-template-columns: 1fr; max-width: 160px; }
 
+  .presence-toggle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+  .presence-toggle .pt-label {
+    font-size: 10.5px;
+    color: var(--text-dim);
+    margin-right: 2px;
+  }
+  .pt-btn {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 5px 12px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .pt-btn.active.yes { background: #3f9d55; color: #fff; border-color: #3f9d55; }
+  .pt-btn.active.no { background: #d1495b; color: #fff; border-color: #d1495b; }
+
+  .player-card.absent {
+    opacity: 0.6;
+    filter: grayscale(0.5);
+  }
+
   .team-swatches {
     display: flex;
     align-items: center;
@@ -726,12 +756,17 @@
       <div class="section-label">Jogadores de linha</div>
       <div id="playerList"></div>
       <div id="emptyLinha" class="empty-note" style="display:none;">Nenhum jogador de linha ainda. Adicione abaixo.</div>
+
+      <div class="section-label">Não vão jogar hoje</div>
+      <div id="absentList"></div>
     </div>
 
     <div id="courtLayout">
       <div id="courtTeams" class="teams-grid"></div>
       <div class="section-label">No banco</div>
       <div id="courtBenchList"></div>
+      <div class="section-label">Não vão jogar hoje</div>
+      <div id="courtAbsentList"></div>
     </div>
 
     <div class="section-label">Adicionar jogador</div>
@@ -798,22 +833,22 @@
   }
 
   var defaultRoster = [
-    { id: 'g1', name: 'Pedro', role: 'goleiro', team: null, vitorias: 0, defesasGrandes: 0 },
-    { id: 'g2', name: 'Luan', role: 'goleiro', team: null, vitorias: 0, defesasGrandes: 0 },
-    { id: 'p1', name: 'Slark', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
-    { id: 'p2', name: 'Júlio Sergio', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
-    { id: 'p3', name: 'William', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
-    { id: 'p4', name: 'Ivan', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
-    { id: 'p5', name: 'Pastor Pedro', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
-    { id: 'p6', name: 'Francisco', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
-    { id: 'p7', name: 'Weverson Lima', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
-    { id: 'p8', name: 'Jefferson Luiz', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
-    { id: 'p9', name: 'Maykon Douglas', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
-    { id: 'p10', name: 'Luis Fernando', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
-    { id: 'p11', name: 'Denisson', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
-    { id: 'p12', name: 'Paulo Junior', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
-    { id: 'p13', name: 'Gilvan', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 },
-    { id: 'p14', name: 'Kauan', role: 'linha', team: null, gols: 0, vitorias: 0, golsPerdidos: 0 }
+    { id: 'g1', name: 'Pedro', role: 'goleiro', team: null, presente: true, vitorias: 0, defesasGrandes: 0 },
+    { id: 'g2', name: 'Luan', role: 'goleiro', team: null, presente: true, vitorias: 0, defesasGrandes: 0 },
+    { id: 'p1', name: 'Slark', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p2', name: 'Júlio Sergio', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p3', name: 'William', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p4', name: 'Ivan', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p5', name: 'Pastor Pedro', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p6', name: 'Francisco', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p7', name: 'Weverson Lima', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p8', name: 'Jefferson Luiz', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p9', name: 'Maykon Douglas', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p10', name: 'Luis Fernando', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p11', name: 'Denisson', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p12', name: 'Paulo Junior', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p13', name: 'Gilvan', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 },
+    { id: 'p14', name: 'Kauan', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 }
   ];
 
   var state = { players: defaultRoster, hiddenTeams: [] };
@@ -823,6 +858,7 @@
     candidate.players.forEach(function(p) {
       if (!('team' in p)) p.team = null;
       if (p.role === 'goleiro' && !('defesasGrandes' in p)) p.defesasGrandes = 0;
+      if (!('presente' in p)) p.presente = true;
     });
     if (!Array.isArray(candidate.hiddenTeams)) candidate.hiddenTeams = [];
     return candidate;
@@ -905,6 +941,11 @@
     if (action) action();
   });
 
+  function compareGoalieFirstThenName(a, b) {
+    if (a.role !== b.role) return a.role === 'goleiro' ? -1 : 1;
+    return a.name.localeCompare(b.name, 'pt-BR');
+  }
+
   function esc(s) {
     var d = document.createElement('div');
     d.textContent = s;
@@ -932,7 +973,7 @@
     var html = '';
     groups.forEach(function(g) {
       if (!g.items.length) return;
-      g.items.sort(function(a, b) { return a.name.localeCompare(b.name, 'pt-BR'); });
+      g.items.sort(compareGoalieFirstThenName);
       html += groupHeaderHtml(g.team, g.items.length);
       html += g.items.map(cardFn).join('');
     });
@@ -964,13 +1005,23 @@
   function teamKey(t) { return t || 'none'; }
   function isHiddenTeam(t) { return state.hiddenTeams.indexOf(teamKey(t)) !== -1; }
 
-  function goalieCardHtml(p) {
+  function presenceToggleHtml(playerId, presente) {
+    var isYes = presente !== false;
+    return '<div class="presence-toggle">' +
+      '<span class="pt-label">Vai hoje?</span>' +
+      '<button class="pt-btn' + (isYes ? ' active yes' : '') + '" data-presence-id="' + playerId + '" data-presence="yes">Sim</button>' +
+      '<button class="pt-btn' + (!isYes ? ' active no' : '') + '" data-presence-id="' + playerId + '" data-presence="no">Não</button>' +
+    '</div>';
+  }
+
+  function goalieCardHtml(p, extraClass) {
     return '' +
-      '<div class="player-card' + (p.team ? ' team-' + p.team : '') + '">' +
+      '<div class="player-card' + (p.team ? ' team-' + p.team : '') + (extraClass ? ' ' + extraClass : '') + '">' +
         '<div class="row-top">' +
           '<div class="player-name">' + esc(p.name) + '<span class="badge">GOL</span></div>' +
           '<button class="remove-x" data-remove="' + p.id + '" aria-label="Remover">×</button>' +
         '</div>' +
+        presenceToggleHtml(p.id, p.presente) +
         swatchesHtml(p.id, p.team) +
         '<div class="counters" style="grid-template-columns:1fr 1fr;">' +
           counterBlock(p.id, 'vitorias', 'Vitórias') +
@@ -979,13 +1030,14 @@
       '</div>';
   }
 
-  function lineCardHtml(p) {
+  function lineCardHtml(p, extraClass) {
     return '' +
-      '<div class="player-card' + (p.team ? ' team-' + p.team : '') + '">' +
+      '<div class="player-card' + (p.team ? ' team-' + p.team : '') + (extraClass ? ' ' + extraClass : '') + '">' +
         '<div class="row-top">' +
           '<div class="player-name">' + esc(p.name) + '</div>' +
           '<button class="remove-x" data-remove="' + p.id + '" aria-label="Remover">×</button>' +
         '</div>' +
+        presenceToggleHtml(p.id, p.presente) +
         swatchesHtml(p.id, p.team) +
         '<div class="counters">' +
           counterBlock(p.id, 'gols', 'Gols') +
@@ -995,23 +1047,23 @@
       '</div>';
   }
 
-  function cardHtmlFor(p) { return p.role === 'goleiro' ? goalieCardHtml(p) : lineCardHtml(p); }
+  function cardHtmlFor(p, extraClass) { return p.role === 'goleiro' ? goalieCardHtml(p, extraClass) : lineCardHtml(p, extraClass); }
 
   function renderGoalies() {
-    var all = state.players.filter(function(p){ return p.role === 'goleiro'; });
+    var all = state.players.filter(function(p){ return p.role === 'goleiro' && p.presente !== false; });
     var goalies = all.filter(function(p){ return !isHiddenTeam(p.team); });
     var html = renderGroupedList(goalies, goalieCardHtml);
     document.getElementById('goalieList').innerHTML = html ||
-      (all.length ? '<div class="empty-note">Todos os goleiros estão ocultos pelo filtro de times.</div>' : '<div class="empty-note">Nenhum goleiro cadastrado.</div>');
+      (all.length ? '<div class="empty-note">Todos os goleiros estão ocultos pelo filtro de times.</div>' : '<div class="empty-note">Nenhum goleiro na lista de hoje.</div>');
   }
 
   function renderPlayers() {
-    var all = state.players.filter(function(p){ return p.role === 'linha'; });
+    var all = state.players.filter(function(p){ return p.role === 'linha' && p.presente !== false; });
     var players = all.filter(function(p){ return !isHiddenTeam(p.team); });
     var emptyEl = document.getElementById('emptyLinha');
     if (!all.length) {
       emptyEl.style.display = 'block';
-      emptyEl.textContent = 'Nenhum jogador de linha ainda. Adicione abaixo.';
+      emptyEl.textContent = 'Nenhum jogador de linha na lista de hoje.';
     } else if (!players.length) {
       emptyEl.style.display = 'block';
       emptyEl.textContent = 'Todos os jogadores de linha estão ocultos pelo filtro de times.';
@@ -1020,6 +1072,15 @@
     }
     var html = renderGroupedList(players, lineCardHtml);
     document.getElementById('playerList').innerHTML = html;
+  }
+
+  function renderAbsentList(containerId) {
+    var absent = state.players.filter(function(p){ return p.presente === false; });
+    absent.sort(compareGoalieFirstThenName);
+    var html = absent.map(function(p) {
+      return cardHtmlFor(Object.assign({}, p, { team: null }), 'absent');
+    }).join('');
+    document.getElementById(containerId).innerHTML = html || '<div class="empty-note">Todo mundo confirmado pra hoje!</div>';
   }
 
   function topByField(list, field) {
@@ -1103,16 +1164,17 @@
 
   function renderCourtLayout() {
     var courtTeamKeys = ['verde', 'laranja'];
+    var present = state.players.filter(function(p){ return p.presente !== false; });
     var teamsHtml = courtTeamKeys.map(function(team) {
-      var members = state.players.filter(function(p){ return p.team === team; });
-      members.sort(function(a, b) { return a.name.localeCompare(b.name, 'pt-BR'); });
+      var members = present.filter(function(p){ return p.team === team; });
+      members.sort(compareGoalieFirstThenName);
       var cardsHtml = members.map(cardHtmlFor).join('');
       if (!cardsHtml) cardsHtml = '<div class="empty-note">Nenhum jogador neste time ainda.</div>';
       return '<div class="team-column">' + groupHeaderHtml(team, members.length) + cardsHtml + '</div>';
     }).join('');
     document.getElementById('courtTeams').innerHTML = teamsHtml;
 
-    var benchMembers = state.players.filter(function(p){ return courtTeamKeys.indexOf(p.team) === -1; });
+    var benchMembers = present.filter(function(p){ return courtTeamKeys.indexOf(p.team) === -1; });
     var benchHtml = renderGroupedList(benchMembers, cardHtmlFor);
     document.getElementById('courtBenchList').innerHTML = benchHtml || '<div class="empty-note">Ninguém no banco no momento.</div>';
   }
@@ -1122,6 +1184,8 @@
     renderGoalies();
     renderPlayers();
     renderCourtLayout();
+    renderAbsentList('absentList');
+    renderAbsentList('courtAbsentList');
     renderTrophies();
   }
 
@@ -1135,6 +1199,18 @@
   }
 
   document.addEventListener('click', function(e) {
+    var ptBtn = e.target.closest('.pt-btn');
+    if (ptBtn) {
+      var pid = ptBtn.getAttribute('data-presence-id');
+      var wantsYes = ptBtn.getAttribute('data-presence') === 'yes';
+      var pp = state.players.find(function(x){ return x.id === pid; });
+      if (pp) {
+        pp.presente = wantsYes;
+        saveState();
+        renderAll();
+      }
+      return;
+    }
     var swatch = e.target.closest('.swatch');
     if (swatch) {
       var sid = swatch.getAttribute('data-team-id');
@@ -1190,7 +1266,7 @@
     var role = document.getElementById('newRole').value;
     var name = input.value.trim();
     if (!name) return;
-    var newPlayer = { id: uid(), name: name, role: role, team: null, vitorias: 0 };
+    var newPlayer = { id: uid(), name: name, role: role, team: null, presente: true, vitorias: 0 };
     if (role === 'goleiro') {
       newPlayer.defesasGrandes = 0;
     } else {
@@ -1238,7 +1314,7 @@
   document.getElementById('resetBtn').addEventListener('click', function() {
     showConfirm('Zerar todas as marcações para uma nova rodada? O elenco é mantido.', function() {
       state.players.forEach(function(p) {
-        p.vitorias = 0; p.team = null;
+        p.vitorias = 0; p.team = null; p.presente = true;
         if (p.role === 'linha') {
           p.gols = 0; p.golsPerdidos = 0;
         } else {
