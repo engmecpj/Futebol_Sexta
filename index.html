@@ -932,6 +932,7 @@
     var html = '';
     groups.forEach(function(g) {
       if (!g.items.length) return;
+      g.items.sort(function(a, b) { return a.name.localeCompare(b.name, 'pt-BR'); });
       html += groupHeaderHtml(g.team, g.items.length);
       html += g.items.map(cardFn).join('');
     });
@@ -1104,6 +1105,7 @@
     var courtTeamKeys = ['verde', 'laranja'];
     var teamsHtml = courtTeamKeys.map(function(team) {
       var members = state.players.filter(function(p){ return p.team === team; });
+      members.sort(function(a, b) { return a.name.localeCompare(b.name, 'pt-BR'); });
       var cardsHtml = members.map(cardHtmlFor).join('');
       if (!cardsHtml) cardsHtml = '<div class="empty-note">Nenhum jogador neste time ainda.</div>';
       return '<div class="team-column">' + groupHeaderHtml(team, members.length) + cardsHtml + '</div>';
