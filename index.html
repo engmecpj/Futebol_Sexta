@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Fut de Sexta</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f2e1d">
+<meta name="theme-color" content="#0b1f3a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,10 +19,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --pitch-dark: #0f2e1d;
-    --pitch: #163d27;
-    --turf: #1f5138;
-    --turf-light: #2c6b49;
+    --pitch-dark: #0b1f3a;
+    --pitch: #12305a;
+    --turf: #1a4378;
+    --turf-light: #2a5d9f;
     --chalk: #f4f7f1;
     --chalk-dim: #c9d6c9;
     --gold: #e3b23c;
@@ -41,22 +41,22 @@
   :root:not([data-theme="light"]) { color-scheme: dark; }
   @media (prefers-color-scheme: light) {
     :root:not([data-theme="dark"]) {
-      --bg: #eef3ec;
+      --bg: #eaf0f8;
       --surface: #ffffff;
-      --surface-2: #e4ede2;
-      --text: #10261a;
-      --text-dim: #4a5f50;
-      --line: rgba(16, 38, 26, 0.12);
+      --surface-2: #dce6f3;
+      --text: #0f2036;
+      --text-dim: #4a5a70;
+      --line: rgba(15, 32, 54, 0.12);
       color-scheme: light;
     }
   }
   :root[data-theme="light"] {
-    --bg: #eef3ec;
+    --bg: #eaf0f8;
     --surface: #ffffff;
-    --surface-2: #e4ede2;
-    --text: #10261a;
-    --text-dim: #4a5f50;
-    --line: rgba(16, 38, 26, 0.12);
+    --surface-2: #dce6f3;
+    --text: #0f2036;
+    --text-dim: #4a5a70;
+    --line: rgba(15, 32, 54, 0.12);
     color-scheme: light;
   }
 
@@ -122,7 +122,7 @@
     position: sticky;
     top: 0;
     z-index: 3;
-    background: #0a1f14;
+    background: #07142b;
     border-bottom: 1px solid rgba(255,255,255,0.08);
     padding: 10px 16px 12px;
     display: flex;
@@ -476,7 +476,7 @@
   }
   .stepper.plus { background: var(--turf-light); color: var(--chalk); }
   :root[data-theme="light"] .stepper.plus,
-  @media (prefers-color-scheme: light) { .stepper.plus { background: #cfe0cb; color: #10261a; } }
+  @media (prefers-color-scheme: light) { .stepper.plus { background: #c5d6ee; color: #0f2036; } }
   .stepper:active { transform: scale(0.92); }
 
   .add-row {
