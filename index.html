@@ -288,13 +288,16 @@
     background: var(--surface-2);
     border: 1px solid var(--line);
   }
-  .filter-chip.hidden-team {
-    opacity: 0.4;
+  .filter-chip.active {
+    border-color: var(--gold);
+    background: var(--surface-2);
+    font-weight: 600;
   }
-  .filter-chip.hidden-team::after {
-    content: '· oculto';
-    color: var(--text-dim);
+  .filter-chip.active::after {
+    content: '· em quadra';
+    color: var(--gold);
     font-size: 11px;
+    font-weight: 500;
   }
 
   .player-card {
@@ -403,14 +406,6 @@
     color: var(--text);
     font-family: var(--font-body);
     font-size: 14px;
-  }
-  .color-quadra {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11.5px;
-    color: var(--text-dim);
-    white-space: nowrap;
   }
   .add-row input.color-input {
     flex: none;
@@ -755,6 +750,7 @@
   <section id="view-marcar" class="view active">
     <button class="test-data-btn" id="testDataBtn">🎲 Preencher com dados de teste (para ver a aba Placar)</button>
 
+    <div class="section-label">Em quadra agora (toque em 2 cores)</div>
     <div class="team-filter" id="teamFilter">
     </div>
 
@@ -766,7 +762,7 @@
       <div id="playerList"></div>
       <div id="emptyLinha" class="empty-note" style="display:none;">Nenhum jogador de linha ainda. Adicione abaixo.</div>
 
-      <div class="section-label">Não vão jogar hoje</div>
+      <div class="section-label">Fora da lista de hoje</div>
       <div id="absentList"></div>
     </div>
 
@@ -774,7 +770,7 @@
       <div id="courtTeams" class="teams-grid"></div>
       <div class="section-label">No banco</div>
       <div id="courtBenchList"></div>
-      <div class="section-label">Não vão jogar hoje</div>
+      <div class="section-label">Fora da lista de hoje</div>
       <div id="courtAbsentList"></div>
     </div>
 
@@ -872,11 +868,11 @@
 
   function defaultColors() {
     return [
-      { id: 'verde', nome: 'Verde', hex: '#3f9d55', quadra: true },
-      { id: 'laranja', nome: 'Laranja', hex: '#e2833f', quadra: true },
-      { id: 'cinza', nome: 'Cinza', hex: '#9aa5a0', quadra: false },
-      { id: 'vermelho', nome: 'Vermelho', hex: '#d1495b', quadra: false },
-      { id: 'azul', nome: 'Azul', hex: '#3b82f6', quadra: false }
+      { id: 'verde', nome: 'Verde', hex: '#3f9d55', quadra: true, qseq: 1 },
+      { id: 'laranja', nome: 'Laranja', hex: '#e2833f', quadra: true, qseq: 2 },
+      { id: 'cinza', nome: 'Cinza', hex: '#9aa5a0', quadra: false, qseq: 0 },
+      { id: 'vermelho', nome: 'Vermelho', hex: '#d1495b', quadra: false, qseq: 0 },
+      { id: 'azul', nome: 'Azul', hex: '#3b82f6', quadra: false, qseq: 0 }
     ];
   }
 
@@ -890,9 +886,14 @@
         id: String(c.id).replace(/[^a-zA-Z0-9_-]/g, ''),
         nome: String(c.nome || '').slice(0, 20) || 'Cor',
         hex: /^#[0-9a-fA-F]{6}$/.test(c.hex) ? c.hex : '#888888',
-        quadra: !!c.quadra
+        quadra: !!c.quadra,
+        qseq: isFinite(Number(c.qseq)) ? Number(c.qseq) : 0
       };
     });
+    // no máximo 2 cores em quadra: mantém as 2 marcadas mais recentemente
+    candidate.teamColors.filter(function(c) { return c.quadra; })
+      .sort(function(a, b) { return b.qseq - a.qseq; })
+      .slice(2).forEach(function(c) { c.quadra = false; });
     var validIds = candidate.teamColors.map(function(c) { return c.id; });
     candidate.players.forEach(function(p) {
       if (!('team' in p)) p.team = null;
@@ -998,7 +999,11 @@
     if (!id) return null;
     return state.teamColors.filter(function(c) { return c.id === id; })[0] || null;
   }
-  function teamOrder() { return state.teamColors.map(function(c) { return c.id; }).concat([null]); }
+  function teamOrder() {
+    var q = state.teamColors.filter(function(c) { return c.quadra; }).map(function(c) { return c.id; });
+    var rest = state.teamColors.filter(function(c) { return !c.quadra; }).map(function(c) { return c.id; });
+    return q.concat(rest).concat([null]);
+  }
   function teamLabel(id) {
     if (!id) return 'Sem time';
     var c = getColor(id);
@@ -1084,9 +1089,6 @@
       '</div>';
   }
 
-  function teamKey(t) { return t || 'none'; }
-  function isHiddenTeam(t) { return state.hiddenTeams.indexOf(teamKey(t)) !== -1; }
-
   function presenceToggleHtml(playerId, presente) {
     var isYes = presente !== false;
     return '<div class="presence-toggle">' +
@@ -1133,26 +1135,20 @@
 
   function renderGoalies() {
     var all = state.players.filter(function(p){ return p.role === 'goleiro' && p.presente !== false; });
-    var goalies = all.filter(function(p){ return !isHiddenTeam(p.team); });
-    var html = renderGroupedList(goalies, goalieCardHtml);
-    document.getElementById('goalieList').innerHTML = html ||
-      (all.length ? '<div class="empty-note">Todos os goleiros estão ocultos pelo filtro de times.</div>' : '<div class="empty-note">Nenhum goleiro na lista de hoje.</div>');
+    var html = renderGroupedList(all, goalieCardHtml);
+    document.getElementById('goalieList').innerHTML = html || '<div class="empty-note">Nenhum goleiro na lista de hoje.</div>';
   }
 
   function renderPlayers() {
     var all = state.players.filter(function(p){ return p.role === 'linha' && p.presente !== false; });
-    var players = all.filter(function(p){ return !isHiddenTeam(p.team); });
     var emptyEl = document.getElementById('emptyLinha');
     if (!all.length) {
       emptyEl.style.display = 'block';
       emptyEl.textContent = 'Nenhum jogador de linha na lista de hoje.';
-    } else if (!players.length) {
-      emptyEl.style.display = 'block';
-      emptyEl.textContent = 'Todos os jogadores de linha estão ocultos pelo filtro de times.';
     } else {
       emptyEl.style.display = 'none';
     }
-    var html = renderGroupedList(players, lineCardHtml);
+    var html = renderGroupedList(all, lineCardHtml);
     document.getElementById('playerList').innerHTML = html;
   }
 
@@ -1238,13 +1234,10 @@
   }
 
   function renderTeamFilter() {
-    var chips = state.teamColors.map(function(c) {
-      return '<button class="filter-chip' + (state.hiddenTeams.indexOf(c.id) !== -1 ? ' hidden-team' : '') +
-        '" data-filter-team="' + c.id + '"><span class="dot" style="background:' + c.hex + '"></span>' + esc(c.nome) + '</button>';
-    });
-    chips.push('<button class="filter-chip' + (state.hiddenTeams.indexOf('none') !== -1 ? ' hidden-team' : '') +
-      '" data-filter-team="none"><span class="dot dot-none"></span>Sem time</button>');
-    document.getElementById('teamFilter').innerHTML = chips.join('');
+    document.getElementById('teamFilter').innerHTML = state.teamColors.map(function(c) {
+      return '<button class="filter-chip' + (c.quadra ? ' active' : '') + '" data-filter-team="' + c.id +
+        '"><span class="dot" style="background:' + c.hex + '"></span>' + esc(c.nome) + '</button>';
+    }).join('');
   }
 
   function renderColorManager() {
@@ -1253,7 +1246,6 @@
       return '<div class="color-row">' +
         '<input type="color" class="color-input" value="' + c.hex + '" data-color-hex="' + c.id + '" aria-label="Cor ' + nameAttr + '">' +
         '<input type="text" class="color-name" value="' + nameAttr + '" maxlength="20" data-color-name="' + c.id + '">' +
-        '<label class="color-quadra"><input type="checkbox" data-color-quadra="' + c.id + '"' + (c.quadra ? ' checked' : '') + '> Em quadra</label>' +
         '<button class="remove-x" data-remove-color="' + c.id + '" aria-label="Remover cor">×</button>' +
       '</div>';
     }).join('');
@@ -1270,7 +1262,7 @@
       if (!cardsHtml) cardsHtml = '<div class="empty-note">Nenhum jogador neste time ainda.</div>';
       return '<div class="team-column">' + groupHeaderHtml(team, members.length) + cardsHtml + '</div>';
     }).join('');
-    document.getElementById('courtTeams').innerHTML = teamsHtml || '<div class="empty-note">Marque pelo menos uma cor como "Em quadra" em Cores dos coletes.</div>';
+    document.getElementById('courtTeams').innerHTML = teamsHtml || '<div class="empty-note">Toque em duas cores no topo da tela para definir os times em quadra.</div>';
 
     var benchMembers = present.filter(function(p){ return courtTeamKeys.indexOf(p.team) === -1; });
     var benchHtml = renderGroupedList(benchMembers, cardHtmlFor);
@@ -1381,15 +1373,13 @@
   var colorManagerEl = document.getElementById('colorManager');
   colorManagerEl.addEventListener('change', function(e) {
     var t = e.target;
-    var id = t.getAttribute('data-color-hex') || t.getAttribute('data-color-name') || t.getAttribute('data-color-quadra');
+    var id = t.getAttribute('data-color-hex') || t.getAttribute('data-color-name');
     var c = getColor(id);
     if (!c) return;
     if (t.hasAttribute('data-color-hex')) {
       c.hex = t.value;
     } else if (t.hasAttribute('data-color-name')) {
       c.nome = t.value.trim().slice(0, 20) || c.nome;
-    } else if (t.hasAttribute('data-color-quadra')) {
-      c.quadra = t.checked;
     }
     saveState();
     renderAll();
@@ -1403,7 +1393,6 @@
     showConfirm('Remover a cor ' + c.nome + '? Quem estiver com ela fica sem time.', function() {
       state.teamColors = state.teamColors.filter(function(x) { return x.id !== id; });
       state.players.forEach(function(p) { if (p.team === id) p.team = null; });
-      state.hiddenTeams = state.hiddenTeams.filter(function(k) { return k !== id; });
       saveState();
       renderAll();
     });
@@ -1413,7 +1402,7 @@
     var nameEl = document.getElementById('newColorName');
     var nome = nameEl.value.trim().slice(0, 20);
     if (!nome) return;
-    state.teamColors.push({ id: uid(), nome: nome, hex: document.getElementById('newColorHex').value, quadra: false });
+    state.teamColors.push({ id: uid(), nome: nome, hex: document.getElementById('newColorHex').value, quadra: false, qseq: 0 });
     nameEl.value = '';
     saveState();
     renderAll();
@@ -1426,12 +1415,18 @@
   document.getElementById('teamFilter').addEventListener('click', function(e) {
     var chip = e.target.closest('.filter-chip');
     if (!chip) return;
-    var key = chip.getAttribute('data-filter-team');
-    var idx = state.hiddenTeams.indexOf(key);
-    if (idx === -1) {
-      state.hiddenTeams.push(key);
+    var c = getColor(chip.getAttribute('data-filter-team'));
+    if (!c) return;
+    if (c.quadra) {
+      c.quadra = false;
     } else {
-      state.hiddenTeams.splice(idx, 1);
+      var active = state.teamColors.filter(function(x) { return x.quadra; });
+      if (active.length >= 2) {
+        active.sort(function(a, b) { return a.qseq - b.qseq; });
+        active[0].quadra = false;
+      }
+      c.quadra = true;
+      c.qseq = Date.now();
     }
     saveState();
     renderAll();
@@ -1456,16 +1451,15 @@
   });
 
   document.getElementById('resetBtn').addEventListener('click', function() {
-    showConfirm('Zerar todas as marcações para uma nova rodada? O elenco é mantido.', function() {
+    showConfirm('Zerar todas as marcações para uma nova rodada? O elenco é mantido e todos voltam para "não" em "Vai hoje?".', function() {
       state.players.forEach(function(p) {
-        p.vitorias = 0; p.team = null; p.presente = true;
+        p.vitorias = 0; p.team = null; p.presente = false;
         if (p.role === 'linha') {
           p.gols = 0; p.golsPerdidos = 0;
         } else {
           p.defesasGrandes = 0;
         }
       });
-      state.hiddenTeams = [];
       saveState();
       renderAll();
     });
