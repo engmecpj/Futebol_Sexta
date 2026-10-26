@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Fut de Sexta</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0b1f3a">
+<meta name="theme-color" content="#121417">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,10 +19,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --pitch-dark: #0b1f3a;
-    --pitch: #12305a;
-    --turf: #1a4378;
-    --turf-light: #2a5d9f;
+    --pitch-dark: #121417;
+    --pitch: #1c1f24;
+    --turf: #272b32;
+    --turf-light: #3a404a;
     --chalk: #f4f7f1;
     --chalk-dim: #c9d6c9;
     --gold: #e3b23c;
@@ -41,22 +41,22 @@
   :root:not([data-theme="light"]) { color-scheme: dark; }
   @media (prefers-color-scheme: light) {
     :root:not([data-theme="dark"]) {
-      --bg: #eaf0f8;
+      --bg: #f1f2f4;
       --surface: #ffffff;
-      --surface-2: #dce6f3;
-      --text: #0f2036;
-      --text-dim: #4a5a70;
-      --line: rgba(15, 32, 54, 0.12);
+      --surface-2: #e3e5e9;
+      --text: #16181d;
+      --text-dim: #5a606b;
+      --line: rgba(22, 24, 29, 0.12);
       color-scheme: light;
     }
   }
   :root[data-theme="light"] {
-    --bg: #eaf0f8;
+    --bg: #f1f2f4;
     --surface: #ffffff;
-    --surface-2: #dce6f3;
-    --text: #0f2036;
-    --text-dim: #4a5a70;
-    --line: rgba(15, 32, 54, 0.12);
+    --surface-2: #e3e5e9;
+    --text: #16181d;
+    --text-dim: #5a606b;
+    --line: rgba(22, 24, 29, 0.12);
     color-scheme: light;
   }
 
@@ -122,7 +122,7 @@
     position: sticky;
     top: 0;
     z-index: 3;
-    background: #07142b;
+    background: #0b0c0e;
     border-bottom: 1px solid rgba(255,255,255,0.08);
     padding: 10px 16px 12px;
     display: flex;
@@ -205,7 +205,7 @@
     #courtLayout { display: block; }
     .teams-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 16px;
       align-items: start;
     }
@@ -284,10 +284,6 @@
     border-radius: 50%;
     flex-shrink: 0;
   }
-  .filter-chip .dot.dot-verde { background: #3f9d55; }
-  .filter-chip .dot.dot-laranja { background: #e2833f; }
-  .filter-chip .dot.dot-cinza { background: #9aa5a0; }
-  .filter-chip .dot.dot-vermelho { background: #d1495b; }
   .filter-chip .dot.dot-none {
     background: var(--surface-2);
     border: 1px solid var(--line);
@@ -309,26 +305,6 @@
     padding: 12px 14px;
     margin-bottom: 10px;
     transition: border-left-color 0.15s ease;
-  }
-  .player-card.team-verde { background: #2e6b40; border-left-color: #3f9d55; }
-  .player-card.team-laranja { background: #a85d24; border-left-color: #e2833f; }
-  .player-card.team-cinza { background: #52584f; border-left-color: #9aa5a0; }
-  .player-card.team-vermelho { background: #8c3140; border-left-color: #d1495b; }
-  .player-card.team-verde,
-  .player-card.team-laranja,
-  .player-card.team-cinza,
-  .player-card.team-vermelho {
-    color: #fff;
-    --text: #fff;
-    --text-dim: rgba(255,255,255,0.72);
-    --surface-2: rgba(255,255,255,0.18);
-    --line: rgba(255,255,255,0.22);
-  }
-  .player-card.team-verde .swatch.selected,
-  .player-card.team-laranja .swatch.selected,
-  .player-card.team-cinza .swatch.selected,
-  .player-card.team-vermelho .swatch.selected {
-    border-color: #fff;
   }
   .player-card .row-top {
     display: flex;
@@ -397,6 +373,52 @@
     filter: grayscale(0.5);
   }
 
+  .color-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+  }
+  .color-input {
+    width: 40px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: none;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .color-name {
+    flex: 1;
+    min-width: 0;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+  }
+  .color-quadra {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .add-row input.color-input {
+    flex: none;
+    width: 46px;
+    height: 40px;
+    padding: 0;
+  }
+
   .team-swatches {
     display: flex;
     align-items: center;
@@ -416,10 +438,6 @@
     cursor: pointer;
     padding: 0;
   }
-  .swatch.sw-verde { background: #3f9d55; }
-  .swatch.sw-laranja { background: #e2833f; }
-  .swatch.sw-cinza { background: #9aa5a0; }
-  .swatch.sw-vermelho { background: #d1495b; }
   .swatch.sw-none {
     background: var(--surface-2);
     position: relative;
@@ -476,7 +494,7 @@
   }
   .stepper.plus { background: var(--turf-light); color: var(--chalk); }
   :root[data-theme="light"] .stepper.plus,
-  @media (prefers-color-scheme: light) { .stepper.plus { background: #c5d6ee; color: #0f2036; } }
+  @media (prefers-color-scheme: light) { .stepper.plus { background: #d5d8de; color: #16181d; } }
   .stepper:active { transform: scale(0.92); }
 
   .add-row {
@@ -539,10 +557,6 @@
     border-radius: 50%;
     flex-shrink: 0;
   }
-  .team-group-header .dot.dot-verde { background: #3f9d55; }
-  .team-group-header .dot.dot-laranja { background: #e2833f; }
-  .team-group-header .dot.dot-cinza { background: #9aa5a0; }
-  .team-group-header .dot.dot-vermelho { background: #d1495b; }
   .team-group-header .dot.dot-none {
     background: var(--surface-2);
     border: 1px solid var(--line);
@@ -742,11 +756,6 @@
     <button class="test-data-btn" id="testDataBtn">🎲 Preencher com dados de teste (para ver a aba Placar)</button>
 
     <div class="team-filter" id="teamFilter">
-      <button class="filter-chip" data-filter-team="verde"><span class="dot dot-verde"></span>Verde</button>
-      <button class="filter-chip" data-filter-team="laranja"><span class="dot dot-laranja"></span>Laranja</button>
-      <button class="filter-chip" data-filter-team="cinza"><span class="dot dot-cinza"></span>Cinza</button>
-      <button class="filter-chip" data-filter-team="vermelho"><span class="dot dot-vermelho"></span>Vermelho</button>
-      <button class="filter-chip" data-filter-team="none"><span class="dot dot-none"></span>Sem time</button>
     </div>
 
     <div id="stackedLayout">
@@ -777,6 +786,14 @@
         <option value="goleiro">Goleiro</option>
       </select>
       <button class="add-btn" id="addBtn">+</button>
+    </div>
+
+    <div class="section-label">Cores dos coletes</div>
+    <div id="colorManager"></div>
+    <div class="add-row">
+      <input type="text" id="newColorName" placeholder="Nova cor (ex: Amarelo)" maxlength="20">
+      <input type="color" id="newColorHex" class="color-input" value="#facc15">
+      <button class="add-btn" id="addColorBtn">+</button>
     </div>
   </section>
 
@@ -851,12 +868,35 @@
     { id: 'p14', name: 'Kauan', role: 'linha', team: null, presente: true, gols: 0, vitorias: 0, golsPerdidos: 0 }
   ];
 
-  var state = { players: defaultRoster, hiddenTeams: [] };
+  var state = { players: defaultRoster, hiddenTeams: [], teamColors: defaultColors() };
+
+  function defaultColors() {
+    return [
+      { id: 'verde', nome: 'Verde', hex: '#3f9d55', quadra: true },
+      { id: 'laranja', nome: 'Laranja', hex: '#e2833f', quadra: true },
+      { id: 'cinza', nome: 'Cinza', hex: '#9aa5a0', quadra: false },
+      { id: 'vermelho', nome: 'Vermelho', hex: '#d1495b', quadra: false },
+      { id: 'azul', nome: 'Azul', hex: '#3b82f6', quadra: false }
+    ];
+  }
 
   function normalizeState(candidate) {
     if (!candidate || !Array.isArray(candidate.players)) return null;
+    if (!Array.isArray(candidate.teamColors)) candidate.teamColors = defaultColors();
+    candidate.teamColors = candidate.teamColors.filter(function(c) {
+      return c && typeof c.id === 'string';
+    }).map(function(c) {
+      return {
+        id: String(c.id).replace(/[^a-zA-Z0-9_-]/g, ''),
+        nome: String(c.nome || '').slice(0, 20) || 'Cor',
+        hex: /^#[0-9a-fA-F]{6}$/.test(c.hex) ? c.hex : '#888888',
+        quadra: !!c.quadra
+      };
+    });
+    var validIds = candidate.teamColors.map(function(c) { return c.id; });
     candidate.players.forEach(function(p) {
       if (!('team' in p)) p.team = null;
+      if (p.team && validIds.indexOf(p.team) === -1) p.team = null;
       if (p.role === 'goleiro' && !('defesasGrandes' in p)) p.defesasGrandes = 0;
       if (!('presente' in p)) p.presente = true;
     });
@@ -954,20 +994,61 @@
 
   // ---------- rendering ----------
 
-  var TEAM_COLORS = ['verde', 'laranja', 'cinza', 'vermelho'];
-  var TEAM_ORDER = TEAM_COLORS.concat([null]);
-  var TEAM_LABELS = { verde: 'Time Verde', laranja: 'Time Laranja', cinza: 'Time Cinza', vermelho: 'Time Vermelho', null: 'Sem time' };
+  function getColor(id) {
+    if (!id) return null;
+    return state.teamColors.filter(function(c) { return c.id === id; })[0] || null;
+  }
+  function teamOrder() { return state.teamColors.map(function(c) { return c.id; }).concat([null]); }
+  function teamLabel(id) {
+    if (!id) return 'Sem time';
+    var c = getColor(id);
+    return 'Time ' + (c ? c.nome : id);
+  }
+
+  function hexToRgb(hex) {
+    var h = hex.replace('#', '');
+    return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)];
+  }
+  function luminance(rgb) {
+    var a = rgb.map(function(v) {
+      v = v / 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+  }
+  function rgbToHex(rgb) {
+    return '#' + rgb.map(function(v) { var s = v.toString(16); return s.length < 2 ? '0' + s : s; }).join('');
+  }
+  // Cor clara: card na própria cor com texto escuro. Cor escura/média: card
+  // escurecido com texto branco. Assim qualquer cor escolhida fica legível.
+  function cardPalette(hex) {
+    var rgb = hexToRgb(hex);
+    if (luminance(rgb) > 0.45) {
+      return { fill: hex, text: '#14181f', dim: 'rgba(20,24,31,0.72)', surface2: 'rgba(0,0,0,0.12)', line: 'rgba(0,0,0,0.22)' };
+    }
+    var dark = rgb.map(function(v) { return Math.round(v * 0.62); });
+    return { fill: rgbToHex(dark), text: '#ffffff', dim: 'rgba(255,255,255,0.72)', surface2: 'rgba(255,255,255,0.18)', line: 'rgba(255,255,255,0.22)' };
+  }
+  function teamClass(p) { return getColor(p.team) ? ' team-colored' : ''; }
+  function teamStyleAttr(p) {
+    var c = getColor(p.team);
+    if (!c) return '';
+    var s = cardPalette(c.hex);
+    return ' style="background:' + s.fill + ';border-left-color:' + c.hex + ';color:' + s.text +
+      ';--text:' + s.text + ';--text-dim:' + s.dim + ';--surface-2:' + s.surface2 + ';--line:' + s.line + '"';
+  }
 
   function groupHeaderHtml(team, count) {
-    var key = team || 'none';
-    return '<div class="team-group-header"><span class="dot dot-' + key + '"></span>' +
-      TEAM_LABELS[team] + '<span class="cnt">(' + count + ')</span></div>';
+    var c = getColor(team);
+    var dot = c ? '<span class="dot" style="background:' + c.hex + '"></span>' : '<span class="dot dot-none"></span>';
+    return '<div class="team-group-header">' + dot + esc(teamLabel(team)) + '<span class="cnt">(' + count + ')</span></div>';
   }
 
   function renderGroupedList(list, cardFn) {
-    var groups = TEAM_ORDER.map(function(t) { return { team: t, items: [] }; });
+    var groups = teamOrder().map(function(t) { return { team: t, items: [] }; });
     list.forEach(function(p) {
-      var g = groups.filter(function(x) { return x.team === p.team; })[0];
+      var key = getColor(p.team) ? p.team : null;
+      var g = groups.filter(function(x) { return x.team === key; })[0];
       g.items.push(p);
     });
     var html = '';
@@ -981,8 +1062,9 @@
   }
 
   function swatchesHtml(playerId, currentTeam) {
-    var opts = TEAM_COLORS.map(function(c) {
-      return '<button class="swatch sw-' + c + (currentTeam === c ? ' selected' : '') + '" data-team-id="' + playerId + '" data-team="' + c + '" aria-label="Colete ' + c + '"></button>';
+    var opts = state.teamColors.map(function(c) {
+      return '<button class="swatch' + (currentTeam === c.id ? ' selected' : '') + '" style="background:' + c.hex +
+        '" data-team-id="' + playerId + '" data-team="' + c.id + '" aria-label="Colete ' + esc(c.nome).replace(/"/g, '&quot;') + '"></button>';
     }).join('');
     var noneBtn = '<button class="swatch sw-none' + (!currentTeam ? ' selected' : '') + '" data-team-id="' + playerId + '" data-team="" aria-label="Sem time"></button>';
     return '<div class="team-swatches"><span class="sw-label">Colete</span>' + opts + noneBtn + '</div>';
@@ -1016,7 +1098,7 @@
 
   function goalieCardHtml(p, extraClass) {
     return '' +
-      '<div class="player-card' + (p.team ? ' team-' + p.team : '') + (extraClass ? ' ' + extraClass : '') + '">' +
+      '<div class="player-card' + teamClass(p) + (extraClass ? ' ' + extraClass : '') + '"' + teamStyleAttr(p) + '>' +
         '<div class="row-top">' +
           '<div class="player-name">' + esc(p.name) + '<span class="badge">GOL</span></div>' +
           '<button class="remove-x" data-remove="' + p.id + '" aria-label="Remover">×</button>' +
@@ -1032,7 +1114,7 @@
 
   function lineCardHtml(p, extraClass) {
     return '' +
-      '<div class="player-card' + (p.team ? ' team-' + p.team : '') + (extraClass ? ' ' + extraClass : '') + '">' +
+      '<div class="player-card' + teamClass(p) + (extraClass ? ' ' + extraClass : '') + '"' + teamStyleAttr(p) + '>' +
         '<div class="row-top">' +
           '<div class="player-name">' + esc(p.name) + '</div>' +
           '<button class="remove-x" data-remove="' + p.id + '" aria-label="Remover">×</button>' +
@@ -1156,14 +1238,30 @@
   }
 
   function renderTeamFilter() {
-    document.querySelectorAll('#teamFilter .filter-chip').forEach(function(chip) {
-      var key = chip.getAttribute('data-filter-team');
-      chip.classList.toggle('hidden-team', state.hiddenTeams.indexOf(key) !== -1);
+    var chips = state.teamColors.map(function(c) {
+      return '<button class="filter-chip' + (state.hiddenTeams.indexOf(c.id) !== -1 ? ' hidden-team' : '') +
+        '" data-filter-team="' + c.id + '"><span class="dot" style="background:' + c.hex + '"></span>' + esc(c.nome) + '</button>';
     });
+    chips.push('<button class="filter-chip' + (state.hiddenTeams.indexOf('none') !== -1 ? ' hidden-team' : '') +
+      '" data-filter-team="none"><span class="dot dot-none"></span>Sem time</button>');
+    document.getElementById('teamFilter').innerHTML = chips.join('');
+  }
+
+  function renderColorManager() {
+    var html = state.teamColors.map(function(c) {
+      var nameAttr = esc(c.nome).replace(/"/g, '&quot;');
+      return '<div class="color-row">' +
+        '<input type="color" class="color-input" value="' + c.hex + '" data-color-hex="' + c.id + '" aria-label="Cor ' + nameAttr + '">' +
+        '<input type="text" class="color-name" value="' + nameAttr + '" maxlength="20" data-color-name="' + c.id + '">' +
+        '<label class="color-quadra"><input type="checkbox" data-color-quadra="' + c.id + '"' + (c.quadra ? ' checked' : '') + '> Em quadra</label>' +
+        '<button class="remove-x" data-remove-color="' + c.id + '" aria-label="Remover cor">×</button>' +
+      '</div>';
+    }).join('');
+    document.getElementById('colorManager').innerHTML = html || '<div class="empty-note">Nenhuma cor cadastrada. Adicione abaixo.</div>';
   }
 
   function renderCourtLayout() {
-    var courtTeamKeys = ['verde', 'laranja'];
+    var courtTeamKeys = state.teamColors.filter(function(c) { return c.quadra; }).map(function(c) { return c.id; });
     var present = state.players.filter(function(p){ return p.presente !== false; });
     var teamsHtml = courtTeamKeys.map(function(team) {
       var members = present.filter(function(p){ return p.team === team; });
@@ -1172,7 +1270,7 @@
       if (!cardsHtml) cardsHtml = '<div class="empty-note">Nenhum jogador neste time ainda.</div>';
       return '<div class="team-column">' + groupHeaderHtml(team, members.length) + cardsHtml + '</div>';
     }).join('');
-    document.getElementById('courtTeams').innerHTML = teamsHtml;
+    document.getElementById('courtTeams').innerHTML = teamsHtml || '<div class="empty-note">Marque pelo menos uma cor como "Em quadra" em Cores dos coletes.</div>';
 
     var benchMembers = present.filter(function(p){ return courtTeamKeys.indexOf(p.team) === -1; });
     var benchHtml = renderGroupedList(benchMembers, cardHtmlFor);
@@ -1181,6 +1279,7 @@
 
   function renderAll() {
     renderTeamFilter();
+    renderColorManager();
     renderGoalies();
     renderPlayers();
     renderCourtLayout();
@@ -1278,6 +1377,51 @@
     saveState();
     renderAll();
   }
+
+  var colorManagerEl = document.getElementById('colorManager');
+  colorManagerEl.addEventListener('change', function(e) {
+    var t = e.target;
+    var id = t.getAttribute('data-color-hex') || t.getAttribute('data-color-name') || t.getAttribute('data-color-quadra');
+    var c = getColor(id);
+    if (!c) return;
+    if (t.hasAttribute('data-color-hex')) {
+      c.hex = t.value;
+    } else if (t.hasAttribute('data-color-name')) {
+      c.nome = t.value.trim().slice(0, 20) || c.nome;
+    } else if (t.hasAttribute('data-color-quadra')) {
+      c.quadra = t.checked;
+    }
+    saveState();
+    renderAll();
+  });
+  colorManagerEl.addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-remove-color]');
+    if (!btn) return;
+    var id = btn.getAttribute('data-remove-color');
+    var c = getColor(id);
+    if (!c) return;
+    showConfirm('Remover a cor ' + c.nome + '? Quem estiver com ela fica sem time.', function() {
+      state.teamColors = state.teamColors.filter(function(x) { return x.id !== id; });
+      state.players.forEach(function(p) { if (p.team === id) p.team = null; });
+      state.hiddenTeams = state.hiddenTeams.filter(function(k) { return k !== id; });
+      saveState();
+      renderAll();
+    });
+  });
+
+  function addColor() {
+    var nameEl = document.getElementById('newColorName');
+    var nome = nameEl.value.trim().slice(0, 20);
+    if (!nome) return;
+    state.teamColors.push({ id: uid(), nome: nome, hex: document.getElementById('newColorHex').value, quadra: false });
+    nameEl.value = '';
+    saveState();
+    renderAll();
+  }
+  document.getElementById('addColorBtn').addEventListener('click', addColor);
+  document.getElementById('newColorName').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') addColor();
+  });
 
   document.getElementById('teamFilter').addEventListener('click', function(e) {
     var chip = e.target.closest('.filter-chip');
